@@ -1,0 +1,38 @@
+# LEIA-ME PARA EXECUTAR O PREVCARGAPMO
+# PRIMEIRA BAIXE O PACOTE R "forecastpmo_1.0.0.tar.gz" E INSTALE NO R OU RSTUDIO
+# DEPOIS BAIXE O ARQUIVO COM DADOS DO CASO EXEMPLO "deck_PMOFev24.Rdata"
+# CONSIDERE QUE VOCE TENHA BAIXADO O ARQUIVO "deck_PMOFev24.Rdata" NO DIRETORIO C:/EXEMPLOPMO
+# ENTAO NO R OU RSTUDIO PROCESSE O SCRIPT A SEGUIR:
+
+load("C:/EXEMPLOPMO/deck_PMOFev24.Rdata") # CARREGA ARQUIVO RDATA COM DADOS DO EXEMPLO
+dirout="C:/EXEMPLOPMO" # OS RESULTADOS SERAO GRAVADOS AQUI
+dirinput=deck # deck O NOME DO OBJETO R COM DADOS DO EXEMPLO, EXTRAIDO DO ARQUIVO "C:/EXEMPLOPMO/deck_PMOFev24.Rdata"
+
+# AJUSTA MODELO 6: REGRESSAO DINAMICA NA PREVISAO MENSAL E SEMANAL
+hparmes=c(NA,1,NA,0,0,0) # PARAMATROS PARA O MODELO MENSAL
+hparRDsem1=c(NA,1,NA,0,0,0) # CONFIGURA OS PARAMATROS DO MODELO PARA PREVISAO DA CARGA NA PRIMEIRA SEMANA OPERATIVA
+hparRDsem2=c(NA,1,NA,0,0,0) # CONFIGURA OS PARAMATROS DO MODELO PARA PREVISAO DA CARGA NAS DEMAIS SEMANAS OPERATIVAS
+resultado6=previsorpmo(dirinput,dirout,modelo=6,tipoinput=1,tipotemp=0,tipoestudo=1,conciliar=1,nharm=3,pandemia=0,grafico=1,hparmes=hparmes,hparsem1=hparRDsem1,hparsem2=hparRDsem2)
+resultado6$previsao_mensal # PREVISAO MENSAL
+resultado6$primeiro_mes_aberto # PREVISAO PARA O PRIMEIRO MES DO HORIZONTE ABERTA POR SEMANA
+resultado6$previsao_semanal # PREVISAO SEMANAL
+
+# AJUSTA MODELO 0: SVM NA PREVISAO MENSAL E SEMANAL
+resultado0=previsorpmo(dirinput,dirout,modelo=0,tipoinput=1,tipotemp=1,tipoestudo=1,conciliar=1)
+resultado0$previsao_mensal # PREVISAO MENSAL
+resultado0$primeiro_mes_aberto # PREVISAO PARA O PRIMEIRO MES DO HORIZONTE ABERTA POR SEMANA
+resultado0$previsao_semanal # PREVISAO SEMANAL
+
+# AJUSTA MODELO 11: SARIMA NA PREVISAO MENSAL E ETA NA PREVISAO SEMANAL
+resultado11=previsorpmo(dirinput,dirout,modelo=11,tipoinput=1,tipoestudo=1,conciliar=0,pandemia=1,grafico=1)
+resultado11$previsao_mensal # PREVISAO MENSAL
+resultado11$primeiro_mes_aberto # PREVISAO PARA O PRIMEIRO MES DO HORIZONTE ABERTA POR SEMANA
+resultado11$previsao_semanal # PREVISAO SEMANAL
+
+# COMBINA AS PREVISOES GERADAS PELOS PREVISORES ACIMA
+baselearners=list(resultado0,resultado6,resultado11) # LISTA COM OS RESULTADOS DOS 3 PREVISORES
+previsao_combinada=combinaprev(baselearners,tipoprevisao=1,metcombina=3,conciliar=2) # COMBINA AS PREVISOES
+# RESULTADOS A SEGUIR
+previsao_combinada$prev_baselearners_mensais
+previsao_combinada$prev_comb_mes_ANTES_CONCILIA
+previsao_combinada$previsao_mensal
