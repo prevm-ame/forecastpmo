@@ -1,2 +1,2 @@
 # forecastpmo
-previsor de carga para o PMO
+pacote R para previsao de carga para o PMO
